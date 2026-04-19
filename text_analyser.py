@@ -344,3 +344,157 @@ def analyse_sentiment(word_list: list,
     }
 
 
+
+# ---------------------------------------------------------------------------
+# 6.  READABILITY FUNCTIONS
+# ---------------------------------------------------------------------------
+
+def count_syllables_in_word(word: str) -> int:
+    """
+    Estimate the number of syllables in an English word.
+
+    The algorithm:
+      1. Count groups of vowels (a, e, i, o, u) as one syllable.
+      2. Subtract one syllable if the word ends in a silent 'e'.
+      3. Ensure every word has at least one syllable.
+
+    This is an approximation, it will not be perfectly accurate for all words.
+
+    Parameters
+    ----------
+    word : str
+        A single lower-case word.
+
+    Returns
+    -------
+    int
+        Estimated syllable count (minimum 1).
+    """
+    vowels = "aeiou"
+    word_lower = word.lower()
+    syllable_count = 0
+    previous_char_was_vowel = False
+
+    for character in word_lower:
+        is_vowel = character in vowels
+        # Only count the start of a vowel cluster
+        if is_vowel and not previous_char_was_vowel:
+            syllable_count += 1
+        previous_char_was_vowel = is_vowel
+
+    # Subtract a syllable for words ending in a silent 'e'
+    if word_lower.endswith("e") and syllable_count > 1:
+        syllable_count -= 1
+
+    # Every word must have at least one syllable
+    return max(1, syllable_count)
+
+
+def calculate_readability_metrics(raw_text: str, word_list: list) -> dict:
+    """
+    Calculate several standard readability metrics for the text.
+
+    Metrics computed:
+      - Total word count
+      - Total sentence count
+      - Average words per sentence
+      - Average syllables per word
+      - Flesch Reading Ease score (higher = easier to read)
+      - Flesch-Kincaid Grade Level (approximate US school grade)
+      - Sentence length data (list of int) for further analysis
+
+    Formulae:
+      Flesch Reading Ease = 206.835
+                            - 1.015  × (words / sentences)
+                            - 84.6   × (syllables / words)
+
+      Flesch-Kincaid Grade = 0.39 × (words / sentences)
+                           + 11.8 × (syllables / words)
+                           - 15.59
+
+    Parameters
+    ----------
+    raw_text : str
+        The original unprocessed text.
+    word_list : list of str
+        Pre-tokenised word list from the same text.
+
+    Returns
+    -------
+    dict
+        A dictionary of readability metrics.
+    """
+    sentence_list = split_into_sentences(raw_text)
+    total_sentence_count = len(sentence_list)
+    total_word_count = len(word_list)
+
+    # Calculate syllable count for every word in the text
+    total_syllable_count = sum(count_syllables_in_word(w) for w in word_list)
+
+    # Build a list recording the number of words in each sentence
+    sentence_word_lengths = []
+    for sentence in sentence_list:
+        sentence_words = tokenise_words(sentence)
+        sentence_word_lengths.append(len(sentence_words))
+
+    # Avoid division by zero for very short or empty texts
+    if total_sentence_count > 0 and total_word_count > 0:
+        avg_words_per_sentence = total_word_count / total_sentence_count
+        avg_syllables_per_word = total_syllable_count / total_word_count
+
+        # Flesch Reading Ease: 0-100 scale; higher means more readable
+        flesch_reading_ease = (206.835
+                               - 1.015 * avg_words_per_sentence
+                               - 84.6 * avg_syllables_per_word)
+
+        # Flesch-Kincaid Grade Level
+        flesch_kincaid_grade = (0.39 * avg_words_per_sentence
+                                + 11.8 * avg_syllables_per_word
+                                - 15.59)
+    else:
+        avg_words_per_sentence = 0.0
+        avg_syllables_per_word = 0.0
+        flesch_reading_ease = 0.0
+        flesch_kincaid_grade = 0.0
+
+    return {
+        "total_words": total_word_count,
+        "total_sentences": total_sentence_count,
+        "total_syllables": total_syllable_count,
+        "avg_words_per_sentence": avg_words_per_sentence,
+        "avg_syllables_per_word": avg_syllables_per_word,
+        "flesch_reading_ease": flesch_reading_ease,
+        "flesch_kincaid_grade": flesch_kincaid_grade,
+        "sentence_word_lengths": sentence_word_lengths,
+    }
+
+
+def interpret_flesch_score(flesch_score: float) -> str:
+    """
+    Return a human-readable description of a Flesch Reading Ease score.
+
+    Parameters
+    ----------
+    flesch_score : float
+        A Flesch Reading Ease score.
+
+    Returns
+    -------
+    str
+        Description of the difficulty level.
+    """
+    if flesch_score >= 90:
+        return "Very Easy (suitable for young children)"
+    elif flesch_score >= 80:
+        return "Easy (conversational English)"
+    elif flesch_score >= 70:
+        return "Fairly Easy"
+    elif flesch_score >= 60:
+        return "Standard (plain English)"
+    elif flesch_score >= 50:
+        return "Fairly Difficult"
+    elif flesch_score >= 30:
+        return "Difficult (academic / professional)"
+    else:
+        return "Very Difficult (specialist or technical)"
+
