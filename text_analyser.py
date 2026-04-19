@@ -644,3 +644,85 @@ def plot_sentence_length_histogram(sentence_lengths: list,
 
     plt.show()
     plt.close()
+
+
+# ---------------------------------------------------------------------------
+# 8.  DISPLAY / PRINT FUNCTIONS
+# ---------------------------------------------------------------------------
+
+def display_word_frequency_results(top_words: list) -> None:
+    """
+    Print the top word frequencies to the console in a formatted table.
+
+    Parameters
+    ----------
+    top_words : list of tuple
+        Each tuple is (word: str, frequency: int).
+    """
+    print("\n" + "=" * 45)
+    print(f"  {'RANK':<6} {'WORD':<20} {'FREQUENCY'}")
+    print("=" * 45)
+
+    for rank, (word, frequency) in enumerate(top_words, start=1):
+        print(f"  {rank:<6} {word:<20} {frequency}")
+
+    print("=" * 45)
+
+
+def display_sentiment_results(sentiment_results: dict) -> None:
+    """
+    Print a formatted summary of the sentiment analysis results.
+
+    Parameters
+    ----------
+    sentiment_results : dict
+        The dictionary returned by analyse_sentiment().
+    """
+    print("\n" + "=" * 45)
+    print("  SENTIMENT ANALYSIS RESULTS")
+    print("=" * 45)
+    print(f"  Total words analysed : {sentiment_results['total_words']}")
+    print(f"  Positive words found : {sentiment_results['positive_count']} "
+          f"({sentiment_results['positive_pct']:.1f}%)")
+    print(f"  Negative words found : {sentiment_results['negative_count']} "
+          f"({sentiment_results['negative_pct']:.1f}%)")
+    print(f"  Neutral / Other      : {sentiment_results['neutral_count']} "
+          f"({sentiment_results['neutral_pct']:.1f}%)")
+    print(f"\n  Overall Sentiment    : {sentiment_results['overall_label']}")
+    print("=" * 45)
+
+    if sentiment_results["matched_positive"]:
+        unique_pos = sorted(set(sentiment_results["matched_positive"]))
+        print(f"\n  Positive words detected: {', '.join(unique_pos)}")
+
+    if sentiment_results["matched_negative"]:
+        unique_neg = sorted(set(sentiment_results["matched_negative"]))
+        print(f"  Negative words detected: {', '.join(unique_neg)}")
+
+
+def display_readability_results(readability_metrics: dict) -> None:
+    """
+    Print a formatted summary of the readability metrics.
+
+    Parameters
+    ----------
+    readability_metrics : dict
+        The dictionary returned by calculate_readability_metrics().
+    """
+    flesch_score = readability_metrics["flesch_reading_ease"]
+    flesch_description = interpret_flesch_score(flesch_score)
+
+    print("\n" + "=" * 55)
+    print("  READABILITY METRICS")
+    print("=" * 55)
+    print(f"  Total words              : {readability_metrics['total_words']}")
+    print(f"  Total sentences          : {readability_metrics['total_sentences']}")
+    print(f"  Total syllables          : {readability_metrics['total_syllables']}")
+    print(f"  Avg words per sentence   : {readability_metrics['avg_words_per_sentence']:.2f}")
+    print(f"  Avg syllables per word   : {readability_metrics['avg_syllables_per_word']:.2f}")
+    print(f"\n  Flesch Reading Ease      : {flesch_score:.2f}")
+    print(f"  Difficulty level         : {flesch_description}")
+    print(f"\n  Flesch-Kincaid Grade     : {readability_metrics['flesch_kincaid_grade']:.1f}")
+    print("=" * 55)
+
+
