@@ -258,4 +258,89 @@ def get_top_n_words(frequency_dict: dict, top_n: int = 10) -> list:
     # Return only the requested number of top results
     return sorted_pairs[:top_n]
 
+# ---------------------------------------------------------------------------
+# 5.  SENTIMENT ANALYSIS FUNCTIONS
+# ---------------------------------------------------------------------------
+
+def analyse_sentiment(word_list: list,
+                      positive_words: list,
+                      negative_words: list) -> dict:
+    """
+    Perform a simple lexicon-based sentiment analysis on a list of words.
+
+    Each word is checked against the positive and negative lexicons.  The
+    result is a dictionary containing counts and a percentage breakdown.
+
+    Parameters
+    ----------
+    word_list : list of str
+        Tokenised words from the source text.
+    positive_words : list of str
+        Words considered to carry positive sentiment.
+    negative_words : list of str
+        Words considered to carry negative sentiment.
+
+    Returns
+    -------
+    dict with keys:
+        'positive_count'  – number of positive words found
+        'negative_count'  – number of negative words found
+        'neutral_count'   – remaining words
+        'total_words'     – total number of words analysed
+        'positive_pct'    – percentage of positive words (float)
+        'negative_pct'    – percentage of negative words (float)
+        'neutral_pct'     – percentage of neutral words (float)
+        'overall_label'   – 'Positive', 'Negative', or 'Neutral'
+        'matched_positive'– list of positive words actually found in text
+        'matched_negative'– list of negative words actually found in text
+    """
+
+    positive_set = set(positive_words)
+    negative_set = set(negative_words)
+
+    positive_count = 0
+    negative_count = 0
+    matched_positive_words = []
+    matched_negative_words = []
+
+    for word in word_list:
+        if word in positive_set:
+            positive_count += 1
+            matched_positive_words.append(word)
+        elif word in negative_set:
+            negative_count += 1
+            matched_negative_words.append(word)
+
+    total_word_count = len(word_list)
+    neutral_count = total_word_count - positive_count - negative_count
+
+    # Avoid division by zero if the text is empty
+    if total_word_count > 0:
+        positive_percentage = (positive_count / total_word_count) * 100
+        negative_percentage = (negative_count / total_word_count) * 100
+        neutral_percentage = (neutral_count / total_word_count) * 100
+    else:
+        positive_percentage = negative_percentage = neutral_percentage = 0.0
+
+    # Determine an overall sentiment label
+    if positive_count > negative_count:
+        overall_sentiment_label = "Positive"
+    elif negative_count > positive_count:
+        overall_sentiment_label = "Negative"
+    else:
+        overall_sentiment_label = "Neutral"
+
+    return {
+        "positive_count": positive_count,
+        "negative_count": negative_count,
+        "neutral_count": neutral_count,
+        "total_words": total_word_count,
+        "positive_pct": positive_percentage,
+        "negative_pct": negative_percentage,
+        "neutral_pct": neutral_percentage,
+        "overall_label": overall_sentiment_label,
+        "matched_positive": matched_positive_words,
+        "matched_negative": matched_negative_words,
+    }
+
 
