@@ -132,7 +132,7 @@ pip install matplotlib
 
 ### Sample files included
 
--These test data (negative words, positive words and sample text) are created using 
+These test data (negative words, positive words and sample text) are created using 
 Gemini to test the application.
 
 
