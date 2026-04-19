@@ -498,3 +498,149 @@ def interpret_flesch_score(flesch_score: float) -> str:
     else:
         return "Very Difficult (specialist or technical)"
 
+
+
+# ---------------------------------------------------------------------------
+# 7.  DATA VISUALISATION FUNCTIONS
+# ---------------------------------------------------------------------------
+
+def plot_word_frequency_bar_chart(top_words: list, output_file: str = "word_frequency.png") -> None:
+    """
+    Create and save a horizontal bar chart showing the top word frequencies.
+
+    Parameters
+    ----------
+    top_words : list of tuple
+        Each tuple is (word: str, frequency: int), sorted descending.
+    output_file : str
+        File name to save the chart image (default: 'word_frequency.png').
+    """
+    if not top_words:
+        print("  No word data available to plot.")
+        return
+
+    # Separate words and their counts for plotting
+    words = [pair[0] for pair in top_words]
+    counts = [pair[1] for pair in top_words]
+
+    # Reverse the lists so the most frequent word appears at the top
+    words.reverse()
+    counts.reverse()
+
+    fig, axes = plt.subplots(figsize=(9, 6))
+    bar_colours = plt.cm.Blues([0.4 + 0.5 * (i / len(words))
+                                for i in range(len(words))])
+    axes.barh(words, counts, color=bar_colours)
+
+    axes.set_xlabel("Frequency", fontsize=12)
+    axes.set_title("Top Word Frequencies", fontsize=14, fontweight="bold")
+    axes.spines["top"].set_visible(False)
+    axes.spines["right"].set_visible(False)
+
+    plt.tight_layout()
+
+    try:
+        plt.savefig(output_file, dpi=150)
+        print(f"  Bar chart saved as '{output_file}'.")
+    except OSError as error:
+        print(f"  Could not save chart: {error}")
+
+    plt.show()
+    plt.close()
+
+
+def plot_sentiment_pie_chart(sentiment_results: dict,
+                             output_file: str = "sentiment_pie.png") -> None:
+    """
+    Create and save a pie chart illustrating the sentiment distribution.
+
+    Parameters
+    ----------
+    sentiment_results : dict
+        The dictionary returned by analyse_sentiment().
+    output_file : str
+        File name to save the chart image (default: 'sentiment_pie.png').
+    """
+    positive_count = sentiment_results["positive_count"]
+    negative_count = sentiment_results["negative_count"]
+    neutral_count = sentiment_results["neutral_count"]
+
+    # Only include non-zero segments to avoid a confusing empty slice
+    labels = []
+    sizes = []
+    colours = []
+
+    if positive_count > 0:
+        labels.append(f"Positive\n({positive_count} words)")
+        sizes.append(positive_count)
+        colours.append("#4CAF50")   # Green
+
+    if negative_count > 0:
+        labels.append(f"Negative\n({negative_count} words)")
+        sizes.append(negative_count)
+        colours.append("#F44336")   # Red
+
+    if neutral_count > 0:
+        labels.append(f"Neutral\n({neutral_count} words)")
+        sizes.append(neutral_count)
+        colours.append("#9E9E9E")   # Grey
+
+    if not sizes:
+        print("  No sentiment data available to plot.")
+        return
+
+    fig, axes = plt.subplots(figsize=(7, 6))
+    axes.pie(sizes,
+             labels=labels,
+             colors=colours,
+             autopct="%1.1f%%",
+             startangle=140,
+             pctdistance=0.8)
+
+    axes.set_title("Sentiment Distribution", fontsize=14, fontweight="bold")
+    plt.tight_layout()
+
+    try:
+        plt.savefig(output_file, dpi=150)
+        print(f"  Pie chart saved as '{output_file}'.")
+    except OSError as error:
+        print(f"  Could not save chart: {error}")
+
+    plt.show()
+    plt.close()
+
+
+def plot_sentence_length_histogram(sentence_lengths: list,
+                                   output_file: str = "sentence_lengths.png") -> None:
+    """
+    Create and save a histogram of sentence lengths (words per sentence).
+
+    Parameters
+    ----------
+    sentence_lengths : list of int
+        Number of words in each sentence.
+    output_file : str
+        File name to save the chart image.
+    """
+    if not sentence_lengths:
+        print("  No sentence data available to plot.")
+        return
+
+    fig, axes = plt.subplots(figsize=(8, 5))
+    axes.hist(sentence_lengths, bins=10, color="#5C85D6", edgecolor="white")
+    axes.set_xlabel("Words per Sentence", fontsize=12)
+    axes.set_ylabel("Number of Sentences", fontsize=12)
+    axes.set_title("Sentence Length Distribution", fontsize=14, fontweight="bold")
+    axes.spines["top"].set_visible(False)
+    axes.spines["right"].set_visible(False)
+
+    plt.tight_layout()
+
+    try:
+        plt.savefig(output_file, dpi=150)
+        print(f"  Histogram saved as '{output_file}'.")
+    except OSError as error:
+        print(f"  Could not save chart: {error}")
+
+    plt.show()
+    plt.close()
