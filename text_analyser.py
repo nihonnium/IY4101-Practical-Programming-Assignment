@@ -95,3 +95,63 @@ def load_lexicon_file(file_path: str) -> list:
         print(f"  Error reading lexicon '{file_path}': {error}")
         return []
 
+
+# ---------------------------------------------------------------------------
+# 2.  TEXT PRE-PROCESSING FUNCTIONS
+# ---------------------------------------------------------------------------
+
+def tokenise_words(raw_text: str) -> list:
+    """
+    Convert a raw text string into a list of lower-case words, removing
+    all punctuation.
+
+    Parameters
+    ----------
+    raw_text : str
+        The original text to tokenise.
+
+    Returns
+    -------
+    list of str
+        A list of individual words with punctuation stripped and converted
+        to lower case.
+    """
+    # Build a translation table that removes every punctuation character
+    removal_table = str.maketrans("", "", string.punctuation)
+    cleaned_text = raw_text.translate(removal_table).lower()
+
+    # Split on whitespace to obtain individual tokens
+    all_tokens = cleaned_text.split()
+
+    # Discard any tokens that contain no alphabetic characters (e.g. numbers)
+    word_tokens = [token for token in all_tokens if token.isalpha()]
+    return word_tokens
+
+
+def split_into_sentences(raw_text: str) -> list:
+    """
+    Split a block of raw text into individual sentences.
+
+    Sentences are assumed to end with a full stop, exclamation mark, or
+    question mark.
+
+    Parameters
+    ----------
+    raw_text : str
+        The original text to split.
+
+    Returns
+    -------
+    list of str
+        A list of non-empty sentence strings.
+    """
+    sentence_list = []
+    # Replace the other terminal punctuation marks with full stops
+    normalised_text = raw_text.replace("!", ".").replace("?", ".")
+
+    for fragment in normalised_text.split("."):
+        stripped_fragment = fragment.strip()
+        if stripped_fragment:  # Ignore empty fragments
+            sentence_list.append(stripped_fragment)
+
+    return sentence_list
