@@ -155,3 +155,107 @@ def split_into_sentences(raw_text: str) -> list:
             sentence_list.append(stripped_fragment)
 
     return sentence_list
+
+# ---------------------------------------------------------------------------
+# 3.  WORD FREQUENCY FUNCTIONS
+# ---------------------------------------------------------------------------
+
+def build_word_frequency_dict(word_list: list) -> dict:
+    """
+    Count how many times each word appears in a list of words.
+
+    Parameters
+    ----------
+    word_list : list of str
+        Tokenised words from the source text.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping each unique word (str) to its frequency (int).
+    """
+    frequency_dict = {}
+
+    for word in word_list:
+        if word in frequency_dict:
+            frequency_dict[word] += 1
+        else:
+            frequency_dict[word] = 1
+
+    return frequency_dict
+
+
+# ---------------------------------------------------------------------------
+# 4.  SORTING ALGORITHM
+# ---------------------------------------------------------------------------
+
+def insertion_sort_by_frequency(word_freq_pairs: list) -> list:
+    """
+    Sort a list of (word, frequency) tuples in descending order of frequency
+    using the Insertion Sort algorithm.
+
+    Insertion Sort works by building a sorted sub-list one element at a time.
+    Each new element is compared against the already-sorted portion and
+    inserted into its correct position.
+
+    Time complexity: O(n^2) in the worst case.
+
+    Parameters
+    ----------
+    word_freq_pairs : list of tuple
+        Each tuple is (word: str, frequency: int).
+
+    Returns
+    -------
+    list of tuple
+        The same list sorted from highest to lowest frequency.
+    """
+    # Work on a copy so that the original data structure is not modified
+    sorted_pairs = list(word_freq_pairs)
+    number_of_items = len(sorted_pairs)
+
+    # Outer loop: iterate over every element starting from the second one
+    for current_index in range(1, number_of_items):
+        current_pair = sorted_pairs[current_index]
+
+        # Inner loop: shift elements that are smaller than current_pair
+        comparison_index = current_index - 1
+        while (comparison_index >= 0 and
+               sorted_pairs[comparison_index][1] < current_pair[1]):
+            # Move the smaller element one step to the right
+            sorted_pairs[comparison_index + 1] = sorted_pairs[comparison_index]
+            comparison_index -= 1
+
+        # Place the current pair in its correct sorted position
+        sorted_pairs[comparison_index + 1] = current_pair
+
+    return sorted_pairs
+
+
+def get_top_n_words(frequency_dict: dict, top_n: int = 10) -> list:
+    """
+    Return the top-n most frequent words from a frequency dictionary,
+    sorted using the manual insertion sort function.
+
+    Parameters
+    ----------
+    frequency_dict : dict
+        Mapping of word -> frequency count.
+    top_n : int
+        How many top words to return (default: 10).
+
+    Returns
+    -------
+    list of tuple
+        Up to top_n tuples of (word, frequency) in descending order.
+    """
+    # Convert the dictionary into a list of (word, frequency) tuples
+    all_pairs = list(frequency_dict.items())
+
+    # Sort using insertion sort
+    sorted_pairs = insertion_sort_by_frequency(all_pairs)
+
+    # Return only the requested number of top results
+    return sorted_pairs[:top_n]
+
+
