@@ -726,3 +726,209 @@ def display_readability_results(readability_metrics: dict) -> None:
     print("=" * 55)
 
 
+# ---------------------------------------------------------------------------
+# 9.  MENU AND MAIN PROGRAMME
+# ---------------------------------------------------------------------------
+
+def display_main_menu() -> None:
+    """Print the main command-line menu to the console."""
+    print("\n" + "+" + "-" * 47 + "+")
+    print("|       NLP TEXT ANALYSER – MAIN MENU          |")
+    print("+" + "-" * 47 + "+")
+    print("|  1.  Load a text file for analysis            |")
+    print("|  2.  Show top 10 most frequent words          |")
+    print("|  3.  Run sentiment analysis                   |")
+    print("|  4.  Show readability metrics                 |")
+    print("|  5.  Plot word frequency bar chart            |")
+    print("|  6.  Plot sentiment distribution pie chart    |")
+    print("|  7.  Plot sentence length histogram           |")
+    print("|  8.  Exit                                     |")
+    print("+" + "-" * 47 + "+")
+
+
+def get_valid_menu_choice(min_option: int, max_option: int) -> int:
+    """
+    Prompt the user for a menu choice and validate the input.
+
+    Keeps prompting until a valid integer within the allowed range is entered.
+
+    Parameters
+    ----------
+    min_option : int
+        The lowest valid menu option number.
+    max_option : int
+        The highest valid menu option number.
+
+    Returns
+    -------
+    int
+        A validated integer menu choice.
+    """
+    while True:
+        try:
+            user_input = input(f"\n  Enter your choice ({min_option}–{max_option}): ").strip()
+            chosen_option = int(user_input)
+
+            if min_option <= chosen_option <= max_option:
+                return chosen_option
+            else:
+                print(f"  Please enter a number between {min_option} and {max_option}.")
+
+        except ValueError:
+            # Catches non-integer input such as letters or symbols
+            print("  Invalid input. Please enter a whole number.")
+
+
+def get_file_path_from_user(prompt_message: str) -> str:
+    """
+    Prompt the user to enter a file path.
+
+    Parameters
+    ----------
+    prompt_message : str
+        The message displayed to the user.
+
+    Returns
+    -------
+    str
+        The file path string entered by the user (may be empty if user presses Enter).
+    """
+    return input(f"\n  {prompt_message}: ").strip()
+
+
+def run_analyser() -> None:
+    """
+    Main entry point: runs the interactive menu loop for the Text Analyser.
+
+    State is maintained in local variables between menu choices so that a
+    text file only needs to be loaded once per session.
+    """
+    print("\n  Welcome to the NLP Text Analyser")
+    print("  IY499 Introduction to Programming\n")
+
+    # Programme state: loaded when the user selects option 1
+    raw_text_content = ""
+    tokenised_word_list = []
+    word_frequency_dictionary = {}
+    positive_lexicon = []
+    negative_lexicon = []
+    text_has_been_loaded = False
+
+    while True:
+        display_main_menu()
+        user_choice = get_valid_menu_choice(1, 8)
+
+        # ------------------------------------------------------------------
+        # Option 1: Load text file
+        # ------------------------------------------------------------------
+        if user_choice == 1:
+            text_file_path = get_file_path_from_user(
+                "Enter path to the text file (e.g. sample_text.txt)"
+            )
+            positive_lexicon_path = get_file_path_from_user(
+                "Enter path to positive words file (or press Enter to skip)"
+            )
+            negative_lexicon_path = get_file_path_from_user(
+                "Enter path to negative words file (or press Enter to skip)"
+            )
+
+            print("\n  Loading files...")
+            loaded_text = load_text_file(text_file_path)
+
+            if loaded_text:
+                raw_text_content = loaded_text
+                tokenised_word_list = tokenise_words(raw_text_content)
+                word_frequency_dictionary = build_word_frequency_dict(tokenised_word_list)
+                text_has_been_loaded = True
+                print(f"  Text processed: {len(tokenised_word_list)} words found.")
+            else:
+                print("  Text file could not be loaded. Please try again.")
+                continue
+
+            # Load lexicons if paths were provided
+            if positive_lexicon_path:
+                positive_lexicon = load_lexicon_file(positive_lexicon_path)
+            if negative_lexicon_path:
+                negative_lexicon = load_lexicon_file(negative_lexicon_path)
+
+        # ------------------------------------------------------------------
+        # Options 2–7: Require a loaded text file
+        # ------------------------------------------------------------------
+        elif not text_has_been_loaded:
+            print("\n  No text file loaded. Please select option 1 first.")
+
+        # ------------------------------------------------------------------
+        # Option 2: Display top 10 most frequent words
+        # ------------------------------------------------------------------
+        elif user_choice == 2:
+            top_ten_words = get_top_n_words(word_frequency_dictionary, top_n=10)
+            print("\n  TOP 10 MOST FREQUENT WORDS (sorted by insertion sort)")
+            display_word_frequency_results(top_ten_words)
+
+        # ------------------------------------------------------------------
+        # Option 3: Sentiment analysis
+        # ------------------------------------------------------------------
+        elif user_choice == 3:
+            if not positive_lexicon and not negative_lexicon:
+                print("\n  Warning: No lexicon files were loaded. "
+                      "Load a text file (option 1) and provide lexicon paths.")
+            sentiment_data = analyse_sentiment(
+                tokenised_word_list, positive_lexicon, negative_lexicon
+            )
+            display_sentiment_results(sentiment_data)
+
+        # ------------------------------------------------------------------
+        # Option 4: Readability metrics
+        # ------------------------------------------------------------------
+        elif user_choice == 4:
+            readability_data = calculate_readability_metrics(
+                raw_text_content, tokenised_word_list
+            )
+            display_readability_results(readability_data)
+
+        # ------------------------------------------------------------------
+        # Option 5: Bar chart of word frequencies
+        # ------------------------------------------------------------------
+        elif user_choice == 5:
+            top_ten_words = get_top_n_words(word_frequency_dictionary, top_n=10)
+            print("\n  Generating word frequency bar chart...")
+            plot_word_frequency_bar_chart(top_ten_words)
+
+        # ------------------------------------------------------------------
+        # Option 6: Sentiment pie chart
+        # ------------------------------------------------------------------
+        elif user_choice == 6:
+            if not positive_lexicon and not negative_lexicon:
+                print("\n  Warning: No lexicons loaded; sentiment chart may be uninformative.")
+            sentiment_data = analyse_sentiment(
+                tokenised_word_list, positive_lexicon, negative_lexicon
+            )
+            print("\n  Generating sentiment pie chart...")
+            plot_sentiment_pie_chart(sentiment_data)
+
+        # ------------------------------------------------------------------
+        # Option 7: Sentence length histogram
+        # ------------------------------------------------------------------
+        elif user_choice == 7:
+            readability_data = calculate_readability_metrics(
+                raw_text_content, tokenised_word_list
+            )
+            print("\n  Generating sentence length histogram...")
+            plot_sentence_length_histogram(
+                readability_data["sentence_word_lengths"]
+            )
+
+        # ------------------------------------------------------------------
+        # Option 8: Exit
+        # ------------------------------------------------------------------
+        elif user_choice == 8:
+            print("\n  Thank you for using the NLP Text Analyser. Goodbye!\n")
+            break
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    run_analyser()
